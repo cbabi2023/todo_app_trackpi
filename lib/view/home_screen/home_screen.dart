@@ -1,15 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:todo_app_trackpi/controller/task_controller.dart';
+
 import 'package:todo_app_trackpi/utils/colorsconstants/colorconstants.dart';
 import 'package:todo_app_trackpi/view/task_edit_page/task_edit.dart';
+import 'package:todo_app_trackpi/view/task_pages/task_completed.dart';
 import 'package:todo_app_trackpi/view/task_pages/task_page.dart';
+import 'package:todo_app_trackpi/view/task_pages/task_uncompleted.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    WidgetsBinding.instance.addPostFrameCallback(
+      (timeStamp) async {
+        await context.read<TaskController>().getAllTodoList();
+      },
+    );
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 4,
+      length: 3,
       child: Scaffold(
         // --------------- appbar ------------------------------------------------
 
@@ -36,9 +56,35 @@ class HomeScreen extends StatelessWidget {
             )
           ],
 
-          // -------------- bottom TabBar --------------------------------------
+          // -------------- bottom TabBar --------------------------------------/
+
+          bottom: TabBar(
+              dividerColor: Colorconstants.whiteColor.withOpacity(0.2),
+              indicatorColor: Colorconstants.addTaskButton,
+              labelColor: Colorconstants.whiteColor,
+              indicatorSize: TabBarIndicatorSize.label,
+              tabs: const [
+                Tab(
+                  text: 'All',
+                ),
+                Tab(
+                  text: 'Completed',
+                ),
+                Tab(
+                  text: 'Uncompleted',
+                ),
+              ]),
         ),
-        body: TaskPageView(),
+
+        body: TabBarView(
+          children: [
+            TaskPageView(
+              todoLength: TaskController.todoList.length,
+            ),
+            const TaskCompleted(),
+            const TaskUnCompleted(),
+          ],
+        ),
 
         // ------------- Add a new Task Button -----------------------------------
 

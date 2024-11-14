@@ -4,7 +4,9 @@ import 'package:todo_app_trackpi/controller/task_controller.dart';
 import 'package:todo_app_trackpi/utils/colorsconstants/colorconstants.dart';
 import 'package:todo_app_trackpi/view/home_screen/home_screen.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await TaskController.initDb();
   runApp(const MyApp());
 }
 

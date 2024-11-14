@@ -1,11 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:todo_app_trackpi/controller/task_controller.dart';
 import 'package:todo_app_trackpi/utils/colorsconstants/colorconstants.dart';
+import 'package:todo_app_trackpi/view/home_screen/home_screen.dart';
 
-class TaskEditPage extends StatelessWidget {
+class TaskEditPage extends StatefulWidget {
   const TaskEditPage({super.key});
 
   @override
+  State<TaskEditPage> createState() => _TaskEditPageState();
+}
+
+class _TaskEditPageState extends State<TaskEditPage> {
+  TextEditingController titleController = TextEditingController();
+  TextEditingController descriptionController = TextEditingController();
+
+  @override
+  void initState() {
+    WidgetsBinding.instance.addPostFrameCallback(
+      (timeStamp) {
+        TaskController.initDb();
+      },
+    );
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final providerObj = Provider.of<TaskController>(context);
+
     return Scaffold(
       appBar: AppBar(
         actions: [
@@ -42,6 +65,7 @@ class TaskEditPage extends StatelessWidget {
             // -------------- Title  Text --------------------------------------
             CustomTextfiled(
               hinText: "Enter  Title",
+              controller: titleController,
               boxheight: 60,
               maxlength: 40,
               maxlines: 1,
@@ -55,6 +79,7 @@ class TaskEditPage extends StatelessWidget {
             // -------------- description  Text --------------------------------------
             CustomTextfiled(
               hinText: "Enter Details",
+              controller: descriptionController,
               boxheight: 150,
               maxlength: 150,
               maxlines: 5,
@@ -85,20 +110,27 @@ class TaskEditPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: List.generate(
                 3,
-                (index) => Row(
+                (priorityIndex) => Row(
                   children: [
                     Radio(
-                      value: 2,
-                      groupValue: false,
-                      onChanged: (value) {},
+                      activeColor: Colorconstants.addTaskButton,
+                      value: priorityIndex,
+                      groupValue: providerObj.priorityIndex,
+                      onChanged: (priorityValue) {
+                        providerObj.todoPriorities(priorityValue!);
+                      },
                     ),
-                    const Text(
-                      "Priority",
-                      style: TextStyle(
+                    Text(
+                      priorityIndex == 0
+                          ? "High"
+                          : priorityIndex == 1
+                              ? "Medium"
+                              : "Low",
+                      style: const TextStyle(
                         color: Colorconstants.whiteColor,
                       ),
                     ),
-                    index == 2
+                    priorityIndex == 2
                         ? const SizedBox(
                             width: 10,
                           )
@@ -115,21 +147,51 @@ class TaskEditPage extends StatelessWidget {
             ),
 
             // ------------- Save Button -----------------------------------
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colorconstants.whiteColor,
-                      borderRadius: BorderRadius.circular(16),
+            InkWell(
+              onTap: () async {
+                if (titleController.text.isNotEmpty &&
+                    descriptionController.text.isNotEmpty &&
+                    providerObj.priorityIndex != null) {
+                  // details saved to the database
+                  await providerObj.addTodoDb(
+                      todoTitle: titleController.text,
+                      todoDescription: descriptionController.text,
+                      priority: providerObj.priorityIndex!);
+
+                  // database upto date and loged in the console
+                  await providerObj.getAllTodoList();
+
+                  // Navigate to home screen
+                  Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HomeScreen(),
+                      ));
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      backgroundColor: Colors.red,
+                      content: Text('Please fill the Details'),
                     ),
-                    child: const Center(
-                      child: Text('Save'),
+                  );
+                }
+              },
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colorconstants.whiteColor,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Center(
+                        child: Text('Save'),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
 
             // ------------- Save Button -----------------------------------
@@ -147,6 +209,7 @@ class CustomTextfiled extends StatelessWidget {
   double? toppadding;
   double? userTypefontSize;
   String? hinText;
+  TextEditingController? controller;
 
   CustomTextfiled({
     super.key,
@@ -156,6 +219,7 @@ class CustomTextfiled extends StatelessWidget {
     this.toppadding,
     this.userTypefontSize,
     this.hinText,
+    this.controller,
   });
 
   @override
@@ -171,6 +235,7 @@ class CustomTextfiled extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
       ),
       child: TextFormField(
+        controller: controller,
         maxLines: maxlines,
         maxLength: maxlength,
         style: TextStyle(

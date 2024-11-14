@@ -4,58 +4,59 @@ import 'package:todo_app_trackpi/controller/task_controller.dart';
 import 'package:todo_app_trackpi/utils/colorsconstants/colorconstants.dart';
 
 class TaskPageView extends StatelessWidget {
-  const TaskPageView({
+  int? todoLength;
+  TaskPageView({
     super.key,
+    this.todoLength,
   });
 
   @override
   Widget build(BuildContext context) {
     final providerObj = Provider.of<TaskController>(context);
+
     return Padding(
       padding: const EdgeInsets.all(10.0),
       child: Column(
         children: [
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: List.generate(
-                4,
-                (currentCategoryIndex) => Padding(
-                  padding: const EdgeInsets.only(right: 15.0),
-                  child: InkWell(
-                    onTap: () {
-                      providerObj.todoCategories(currentCategoryIndex);
-                    },
-                    child: Container(
-                      height: 35,
-                      width: currentCategoryIndex == 0 ? 60 : 120,
-                      decoration: BoxDecoration(
-                        color: Colorconstants.whiteColor.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Center(
-                        child: Text(
-                          currentCategoryIndex == 0
-                              ? "All"
-                              : currentCategoryIndex == 1
-                                  ? "Starred"
-                                  : currentCategoryIndex == 2
-                                      ? "Completed"
-                                      : "Uncompleted",
-                          style: TextStyle(
-                            color: currentCategoryIndex ==
-                                    providerObj.categoryIndex
-                                ? Colorconstants.addTaskButton
-                                : Colorconstants.whiteColor,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
+          // SingleChildScrollView(
+          //   scrollDirection: Axis.horizontal,
+          //   child: Row(
+          //     children: List.generate(
+          //       3,
+          //       (currentCategoryIndex) => Padding(
+          //         padding: const EdgeInsets.only(right: 15.0),
+          //         child: InkWell(
+          //           onTap: () {
+          //             providerObj.todoCategories(currentCategoryIndex);
+          //           },
+          //           child: Container(
+          //             height: 35,
+          //             width: currentCategoryIndex == 0 ? 60 : 120,
+          //             decoration: BoxDecoration(
+          //               color: Colorconstants.whiteColor.withOpacity(0.2),
+          //               borderRadius: BorderRadius.circular(16),
+          //             ),
+          //             child: Center(
+          //               child: Text(
+          //                 currentCategoryIndex == 0
+          //                     ? "All"
+          //                     : currentCategoryIndex == 1
+          //                         ? "Uncompleted"
+          //                         : "Completed",
+          //                 style: TextStyle(
+          //                   color: currentCategoryIndex ==
+          //                           providerObj.categoryIndex
+          //                       ? Colorconstants.addTaskButton
+          //                       : Colorconstants.whiteColor,
+          //                 ),
+          //               ),
+          //             ),
+          //           ),
+          //         ),
+          //       ),
+          //     ),
+          //   ),
+          // ),
           const SizedBox(
             height: 30,
           ),
@@ -87,7 +88,10 @@ class TaskPageView extends StatelessWidget {
                       Row(
                         children: [
                           IconButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              // ----------- sort function ------------
+                              providerObj.sortFunction();
+                            },
                             icon: const Icon(
                               Icons.swap_vert,
                               size: 30,
@@ -95,7 +99,25 @@ class TaskPageView extends StatelessWidget {
                             ),
                           ),
                           IconButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              // ----------- mark done or delete --------------
+                              showMenu(
+                                context: context,
+                                position:
+                                    const RelativeRect.fromLTRB(100, 100, 0, 0),
+                                items: [
+                                  const PopupMenuItem<int>(
+                                    value: 1,
+                                    child: Text('Mark as done'),
+                                  ),
+                                  const PopupMenuItem<int>(
+                                    value: 2,
+                                    child: Text('Delete'),
+                                  ),
+                                ],
+                                elevation: 8.0,
+                              );
+                            },
                             icon: const Icon(
                               Icons.more_vert,
                               size: 30,
@@ -116,41 +138,95 @@ class TaskPageView extends StatelessWidget {
                     child: SingleChildScrollView(
                       child: Column(
                         children: List.generate(
-                          20,
-                          (index) => Row(
-                            children: [
-                              // ----------------  task completed or not -----------------
-                              Radio(
-                                value: 0,
-                                groupValue: true,
-                                onChanged: (value) {},
-                              ),
-                              // ----------------  task completed or not -----------------
-                              // ----------------  task Name --------------------------
-                              const Expanded(
-                                child: Text(
-                                  "Priority",
-                                  style: TextStyle(
-                                    color: Colorconstants.whiteColor,
-                                    fontSize: 20,
+                         todoLength!,
+                          (todoListIndex) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 20.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  // ----------------  task completed or not -----------------
+                                  IconButton(
+                                    onPressed: () {
+                                      providerObj.toggleSelection(TaskController
+                                          .todoList[todoListIndex]['id']);
+                                    },
+                                    icon: providerObj.selectedIndices.contains(
+                                            TaskController
+                                                .todoList[todoListIndex]['id'])
+                                        ? const Icon(
+                                            Icons.check_circle,
+                                            color: Colorconstants.addTaskButton,
+                                          )
+                                        : const Icon(
+                                            Icons.circle_outlined,
+                                            color: Colorconstants.whiteColor,
+                                          ),
                                   ),
-                                ),
+                                  // ----------------  task completed or not -----------------
+                                  // ----------------  task Name --------------------------
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          TaskController.todoList[todoListIndex]
+                                              ['title'],
+                                          style: const TextStyle(
+                                            color: Colorconstants.whiteColor,
+                                            fontSize: 20,
+                                          ),
+                                        ),
+                                        Text(
+                                          TaskController.todoList[todoListIndex]
+                                              ['description'],
+                                          style: TextStyle(
+                                            color: Colorconstants.whiteColor
+                                                .withOpacity(0.5),
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+
+                                  // ----------------  task Name --------------------------
+
+                                  // ----------------  star Button  --------------------------
+                                  IconButton(
+                                    onPressed: () {},
+                                    icon: Icon(
+                                      Icons.priority_high,
+                                      color:
+                                          TaskController.todoList[todoListIndex]
+                                                      ['priority'] ==
+                                                  0
+                                              ? Colors.red
+                                              : TaskController.todoList[
+                                                              todoListIndex]
+                                                          ['priority'] ==
+                                                      1
+                                                  ? Colors.orange
+                                                  : Colorconstants.whiteColor,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    onPressed: () {
+                                      providerObj.removeDb(TaskController
+                                          .todoList[todoListIndex]['id']);
+                                    },
+                                    icon: const Icon(
+                                      Icons.delete_forever_outlined,
+                                      color: Colorconstants.whiteColor,
+                                    ),
+                                  ),
+
+                                  // ----------------  star Button  --------------------------
+                                ],
                               ),
-
-                              // ----------------  task Name --------------------------
-
-                              // ----------------  star Button  --------------------------
-                              IconButton(
-                                onPressed: () {},
-                                icon: const Icon(
-                                  Icons.star,
-                                  color: Colorconstants.whiteColor,
-                                ),
-                              ),
-
-                              // ----------------  star Button  --------------------------
-                            ],
-                          ),
+                            );
+                          },
                         ),
                       ),
                     ),

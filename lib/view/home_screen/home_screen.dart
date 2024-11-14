@@ -65,13 +65,13 @@ class _HomeScreenState extends State<HomeScreen> {
               indicatorSize: TabBarIndicatorSize.label,
               tabs: const [
                 Tab(
-                  text: 'All',
+                  text: 'All Tasks',
                 ),
                 Tab(
                   text: 'Completed',
                 ),
                 Tab(
-                  text: 'Uncompleted',
+                  text: 'Pending',
                 ),
               ]),
         ),
